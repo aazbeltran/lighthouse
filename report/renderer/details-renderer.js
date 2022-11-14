@@ -445,12 +445,14 @@ export class DetailsRenderer {
   }
 
   /**
-   * Computes aggregations and groups from a list of TableItem's
+   * Computes aggregations and groups by entity from a list of TableItem's
    * @param {TableItem[]} items
    * @param {OpportunityTable['headings']} headings
    * @return {TableItem[]}
    */
-  _computeAggregations(items, headings) {
+  _computeEntityAggregations(items, headings) {
+    // Exclude pre-aggregated and non-aggregatable audit results.
+    // Eg. Third-party Summary audit has `.entity` as an Object
     if (!items?.length || typeof(items[0].entity) !== 'string') {
       return [];
     }
@@ -471,7 +473,6 @@ export class DetailsRenderer {
     /** @type {Map<string, TableItem>} */
     const byEntity = new Map();
     for (const item of items) {
-      /** @type {string} */
       const entityName = item.entity?.toString() || '';
       const matchedEntity = this._entityClassification?.entities[
         this._entityClassification?.names[entityName]];
@@ -514,7 +515,7 @@ export class DetailsRenderer {
       this._dom.createChildOf(theadTrElem, 'th', classes).append(labelEl);
     }
 
-    const aggregations = this._computeAggregations(details.items, headings);
+    const aggregations = this._computeEntityAggregations(details.items, headings);
 
     const tbodyElem = this._dom.createChildOf(tableElem, 'tbody');
     let even = true;
