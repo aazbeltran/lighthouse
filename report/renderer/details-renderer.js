@@ -445,6 +445,55 @@ export class DetailsRenderer {
   }
 
   /**
+   * Computes aggregations and groups from a list of TableItem's
+   * @param {TableItem[]} items
+   * @param {OpportunityTable['headings']} headings
+   * @return {TableItem[]}
+   */
+  _computeAggregations(items, headings) {
+    if (!items?.length || typeof(items[0].entity) !== 'string') {
+      return [];
+    }
+
+    const supportedAggregations = ['bytes', 'numeric', 'ms'];
+    /** @type {string[]} */
+    const aggregateKeys = [];
+    for (const heading of headings) {
+      if (!heading.key) continue;
+      if ('valueType' in heading && supportedAggregations.includes(heading.valueType)) {
+        aggregateKeys.push(heading.key);
+      }
+    }
+
+    // Grab the first column's key to group our entity link
+    const primaryKey = headings[0].key || '';
+
+    /** @type {Map<string, TableItem>} */
+    const byEntity = new Map();
+    for (const item of items) {
+      /** @type {string} */
+      const entityName = item.entity?.toString() || '';
+      const matchedEntity = this._entityClassification?.entities[
+        this._entityClassification?.names[entityName]];
+      /** @type {TableItem} */
+      const group = byEntity.get(entityName) || {
+        [primaryKey]: {
+          type: 'link',
+          url: matchedEntity?.homepage || '',
+          text: matchedEntity?.name || 'Unattributable', // TODO: i18n
+        },
+        entity: matchedEntity?.name,
+      };
+      for (const key of aggregateKeys) {
+        group[key] = Number(group[key] || 0) + Number(item[key]);
+      }
+      byEntity.set(entityName, group);
+    }
+
+    return [...byEntity.values()];
+  }
+
+  /**
    * @param {OpportunityTable|Table} details
    * @return {Element}
    */
@@ -465,16 +514,34 @@ export class DetailsRenderer {
       this._dom.createChildOf(theadTrElem, 'th', classes).append(labelEl);
     }
 
+    const aggregations = this._computeAggregations(details.items, headings);
+
     const tbodyElem = this._dom.createChildOf(tableElem, 'tbody');
     let even = true;
-    for (const item of details.items) {
-      const rowsFragment = this._renderTableRowsFromItem(item, headings);
-      for (const rowEl of this._dom.findAll('tr', rowsFragment)) {
-        // For zebra styling.
-        rowEl.classList.add(even ? 'lh-row--even' : 'lh-row--odd');
+    if (aggregations.length) {
+      for (const group of aggregations) {
+        const aggregateFragment = this._renderTableRowsFromItem(group, headings);
+        // Find all items that match the entity.
+        for (const item of details.items.filter((item) => item.entity === group.entity)) {
+          aggregateFragment.append(this._renderTableRowsFromItem(item, headings));
+        }
+        for (const rowEl of this._dom.findAll('tr', aggregateFragment)) {
+          // For zebra styling.
+          rowEl.classList.add(even ? 'lh-row--even' : 'lh-row--odd');
+        }
+        even = !even;
+        tbodyElem.append(aggregateFragment);
       }
-      even = !even;
-      tbodyElem.append(rowsFragment);
+    } else {
+      for (const item of details.items) {
+        const rowsFragment = this._renderTableRowsFromItem(item, headings);
+        for (const rowEl of this._dom.findAll('tr', rowsFragment)) {
+          // For zebra styling.
+          rowEl.classList.add(even ? 'lh-row--even' : 'lh-row--odd');
+        }
+        even = !even;
+        tbodyElem.append(rowsFragment);
+      }
     }
 
     return tableElem;
