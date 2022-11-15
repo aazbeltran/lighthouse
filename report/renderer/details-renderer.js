@@ -526,10 +526,13 @@ export class DetailsRenderer {
         for (const item of details.items.filter((item) => item.entity === group.entity)) {
           aggregateFragment.append(this._renderTableRowsFromItem(item, headings));
         }
-        for (const rowEl of this._dom.findAll('tr', aggregateFragment)) {
+        const renderedRows = this._dom.findAll('tr', aggregateFragment)
+        for (const rowEl of renderedRows) {
           // For zebra styling.
           rowEl.classList.add(even ? 'lh-row--even' : 'lh-row--odd');
         }
+        // Mark group item.
+        renderedRows[0]?.classList.add('lh-row--group');
         even = !even;
         tbodyElem.append(aggregateFragment);
       }

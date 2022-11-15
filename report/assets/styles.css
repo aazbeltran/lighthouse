@@ -1510,6 +1510,23 @@
   word-break: normal;
 }
 
+.lh-row--group td {
+  font-weight: bold;
+}
+
+.lh-row--group a.lh-link {
+  color: inherit;
+  text-decoration: underline dotted #999;
+}
+
+.lh-row--group a.lh-link:hover {
+  text-decoration: underline solid;
+}
+
+.lh-table [data-entity]:not(.lh-row--group) td:first-child {
+  padding-left: 20px;
+}
+
 .lh-row--even {
   background-color: var(--table-higlight-background-color);
 }
@@ -1613,6 +1630,11 @@
   margin-bottom: 0;
   color: var(--color-gray-700);
 }
+
+.lh-row--group ~ .lh-sub-item-row td:first-child {
+  padding-left: 40px;
+}
+
 .lh-sub-item-row td {
   padding-top: 4px;
   padding-bottom: 4px;
