@@ -187,6 +187,9 @@ declare module Details {
 
     displayUnit?: string;
     granularity?: number;
+
+    /** Ignore this column while aggregating. */
+    dontAggregate?: boolean;
   }
 
   interface TableItem {
@@ -220,6 +223,9 @@ declare module Details {
     // NOTE: not used by opportunity details, but used in the renderer until table/opportunity unification.
     displayUnit?: string;
     granularity?: number;
+
+    /** Ignore this column while aggregating. */
+    dontAggregate?: boolean;
   }
 
   /** A more specific table element used for `opportunity` tables. */

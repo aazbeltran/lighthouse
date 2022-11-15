@@ -337,6 +337,7 @@ export class DetailsRenderer {
       label: heading.text,
       displayUnit: heading.displayUnit,
       granularity: heading.granularity,
+      dontAggregate: heading.dontAggregate
     };
   }
 
@@ -461,7 +462,7 @@ export class DetailsRenderer {
     /** @type {string[]} */
     const aggregateKeys = [];
     for (const heading of headings) {
-      if (!heading.key) continue;
+      if (!heading.key || heading.dontAggregate) continue;
       if ('valueType' in heading && supportedAggregations.includes(heading.valueType)) {
         aggregateKeys.push(heading.key);
       }
